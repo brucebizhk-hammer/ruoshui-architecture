@@ -1,0 +1,1172 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>若水 Provider / Core / 白名单规则与开发状态动态图</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --ink: #182033;
+      --muted: #64748b;
+      --line: #cbd5e1;
+      --panel: #ffffff;
+      --core: #dbeafe;
+      --provider: #dcfce7;
+      --project: #fef3c7;
+      --gate: #fee2e2;
+      --white: #f1f5f9;
+      --accent: #2563eb;
+      --green: #15803d;
+      --amber: #b45309;
+      --red: #b91c1c;
+      --navy: #111827;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", Arial, sans-serif;
+    }
+
+    .topbar {
+      background: var(--navy);
+      color: #fff;
+      padding: 26px 38px 20px;
+    }
+
+    .title {
+      margin: 0;
+      font-size: clamp(30px, 3vw, 50px);
+      line-height: 1.12;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin-top: 10px;
+      color: #cbd5e1;
+      font-size: 18px;
+    }
+
+    .page {
+      max-width: 1780px;
+      margin: 0 auto;
+      padding: 22px 30px 34px;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .chip {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: #0f172a;
+      border-radius: 999px;
+      padding: 8px 13px;
+      font-weight: 800;
+      font-size: 15px;
+      cursor: pointer;
+      transition: border-color 180ms ease, background 180ms ease, transform 180ms ease;
+    }
+
+    .chip.active {
+      border-color: var(--accent);
+      background: #eff6ff;
+      transform: translateY(-1px);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.35fr 0.9fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 1px 0 rgba(15, 23, 42, 0.03);
+    }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: baseline;
+      padding: 18px 20px 0;
+    }
+
+    .panel h2 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.25;
+    }
+
+    .panel .note {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .stack {
+      padding: 18px 20px 20px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .layer {
+      display: grid;
+      grid-template-columns: 150px 1fr 96px;
+      gap: 12px;
+      align-items: stretch;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+    }
+
+    .layer.active {
+      border-color: var(--accent);
+      box-shadow: 0 12px 24px rgba(37, 99, 235, 0.14);
+      transform: translateY(-2px);
+    }
+
+    .layer-title {
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-weight: 900;
+      font-size: 18px;
+      line-height: 1.25;
+    }
+
+    .provider { background: var(--provider); }
+    .project { background: var(--project); }
+    .core { background: var(--core); }
+    .gate { background: var(--gate); }
+    .white { background: var(--white); }
+
+    .layer-body {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .mini {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 10px 11px;
+      min-height: 66px;
+    }
+
+    .mini strong {
+      display: block;
+      font-size: 15px;
+      line-height: 1.25;
+      margin-bottom: 5px;
+    }
+
+    .mini span {
+      display: block;
+      color: #475569;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .rule-list {
+      margin: 8px 0 0;
+      padding-left: 24px;
+      color: #475569;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .rule-list li {
+      margin: 4px 0;
+      padding-left: 2px;
+    }
+
+    .owner {
+      border-radius: 10px;
+      border: 1px dashed #94a3b8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-weight: 900;
+      color: #334155;
+      padding: 8px;
+      font-size: 14px;
+      line-height: 1.25;
+    }
+
+    .map {
+      padding: 18px 20px 20px;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .node {
+      position: relative;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px 12px;
+      min-height: 156px;
+      background: #fff;
+      transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+    }
+
+    .node.active {
+      border-color: var(--accent);
+      box-shadow: 0 12px 26px rgba(37, 99, 235, 0.16);
+      transform: translateY(-3px);
+    }
+
+    .node::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      right: -13px;
+      width: 14px;
+      height: 3px;
+      background: #94a3b8;
+      transform: translateY(-50%);
+    }
+
+    .node:last-child::after { display: none; }
+
+    .node h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      line-height: 1.22;
+    }
+
+    .node p {
+      margin: 0;
+      color: #475569;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .node .rule-list {
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .node .tag {
+      display: inline-flex;
+      margin-top: 10px;
+      padding: 5px 8px;
+      border-radius: 999px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      color: #334155;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .side {
+      display: grid;
+      gap: 20px;
+    }
+
+    .allowlist {
+      padding: 18px 20px 20px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .allow-card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px 15px;
+      background: #fff;
+      transition: border-color 200ms ease, box-shadow 200ms ease;
+    }
+
+    .allow-card.active {
+      border-color: var(--accent);
+      box-shadow: 0 10px 22px rgba(37, 99, 235, 0.13);
+    }
+
+    .allow-card h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+    }
+
+    .allow-card p {
+      margin: 0;
+      color: #475569;
+      font-size: 14px;
+      line-height: 1.48;
+    }
+
+    .allow-card .rule-list {
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .truth {
+      padding: 18px 20px 20px;
+    }
+
+    .truth-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .truth-item {
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      background: #fff;
+      padding: 12px;
+      min-height: 92px;
+    }
+
+    .truth-item strong {
+      display: block;
+      font-size: 15px;
+      line-height: 1.25;
+      margin-bottom: 6px;
+    }
+
+    .truth-item span {
+      color: #475569;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .decision {
+      margin-top: 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .matrix {
+      padding: 18px 20px 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      font-size: 15px;
+    }
+
+    th, td {
+      border-bottom: 1px solid #e2e8f0;
+      text-align: left;
+      vertical-align: top;
+      padding: 11px 10px;
+      line-height: 1.35;
+    }
+
+    th {
+      color: #334155;
+      background: #f8fafc;
+      font-size: 14px;
+    }
+
+    .ok { color: var(--green); font-weight: 900; }
+    .warn { color: var(--amber); font-weight: 900; }
+    .stop { color: var(--red); font-weight: 900; }
+
+    .spotlight {
+      margin-top: 20px;
+      border: 1px solid #bfdbfe;
+      background: #eff6ff;
+      border-radius: 14px;
+      padding: 16px 20px;
+      color: #1e3a8a;
+      font-size: 19px;
+      font-weight: 900;
+      min-height: 62px;
+      display: flex;
+      align-items: center;
+    }
+
+    .status-board {
+      margin-top: 20px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    .metrics {
+      padding: 18px 20px 20px;
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .metric {
+      border: 1px solid #e2e8f0;
+      background: #fff;
+      border-radius: 12px;
+      padding: 13px 12px;
+      min-height: 86px;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 24px;
+      line-height: 1.1;
+      color: #0f172a;
+      margin-bottom: 7px;
+    }
+
+    .metric span {
+      color: #475569;
+      font-size: 13px;
+      line-height: 1.35;
+      font-weight: 800;
+    }
+
+    .module-grid {
+      padding: 18px 20px 20px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .module-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      background: #fff;
+      padding: 14px;
+      min-height: 220px;
+      transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+    }
+
+    .module-card.active {
+      border-color: var(--accent);
+      box-shadow: 0 10px 22px rgba(37, 99, 235, 0.13);
+      transform: translateY(-2px);
+    }
+
+    .module-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .module-card h3 {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.25;
+    }
+
+    .pill {
+      flex: none;
+      border-radius: 999px;
+      padding: 5px 8px;
+      font-size: 12px;
+      font-weight: 900;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+      color: #334155;
+    }
+
+    .pill.done { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+    .pill.doing { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+    .pill.todo { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+
+    .workload {
+      display: grid;
+      grid-template-columns: 82px 1fr;
+      gap: 8px;
+      align-items: center;
+      margin: 10px 0 8px;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .bar {
+      height: 9px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar > i {
+      display: block;
+      height: 100%;
+      background: var(--accent);
+      border-radius: 999px;
+    }
+
+    .module-card h4 {
+      margin: 10px 0 5px;
+      font-size: 13px;
+      color: #334155;
+    }
+
+    @media (max-width: 1100px) {
+      .grid,
+      .decision {
+        grid-template-columns: 1fr;
+      }
+
+      .map {
+        grid-template-columns: 1fr;
+      }
+
+      .node::after {
+        display: none;
+      }
+
+      .layer {
+        grid-template-columns: 1fr;
+      }
+
+      .layer-body {
+        grid-template-columns: 1fr;
+      }
+
+      .metrics,
+      .module-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <h1 class="title">Provider / Core / 白名单规则与开发状态动态图</h1>
+    <div class="subtitle">若水全自动客户开发项目 · 条款版 · 已开发/待开发模块 · 开发量 · 当前运行数据</div>
+  </header>
+
+  <main class="page">
+    <div class="toolbar" id="toolbar"></div>
+
+    <section class="grid">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>五层权责结构</h2>
+          <div class="note">按权限分层，不按工具名分层</div>
+        </div>
+        <div class="stack" id="layers"></div>
+      </div>
+
+      <div class="side">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>白名单三层</h2>
+            <div class="note">豁免不是裸奔</div>
+          </div>
+          <div class="allowlist" id="allowlist"></div>
+        </div>
+
+        <div class="panel truth">
+          <div class="panel-head" style="padding:0; margin-bottom:0;">
+            <h2>硬规则</h2>
+            <div class="note">默认保守</div>
+          </div>
+          <div class="truth-grid" id="truthGrid"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" style="margin-top:20px;">
+      <div class="panel-head">
+        <h2>从线索到真实聊天的控制流</h2>
+        <div class="note">前端高摄入，后端严执行</div>
+      </div>
+      <div class="map" id="flowMap"></div>
+    </section>
+
+    <section class="decision">
+      <div class="panel matrix">
+        <div class="panel-head" style="padding:0;">
+          <h2>谁能做什么</h2>
+          <div class="note">越权点一眼看</div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>事项</th>
+              <th>Provider</th>
+              <th>Project A</th>
+              <th>Core</th>
+            </tr>
+          </thead>
+          <tbody id="ownerRows"></tbody>
+        </table>
+      </div>
+
+      <div class="panel matrix">
+        <div class="panel-head" style="padding:0;">
+          <h2>默认决策矩阵</h2>
+          <div class="note">当前执行口径</div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>场景</th>
+              <th>结果</th>
+            </tr>
+          </thead>
+          <tbody id="decisionRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="status-board">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>当前运行数据</h2>
+          <div class="note">2026-07-10 本地库快照</div>
+        </div>
+        <div class="metrics" id="metrics"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>已开发 / 待开发模块与开发量</h2>
+          <div class="note">后续每次开发同步更新</div>
+        </div>
+        <div class="module-grid" id="moduleGrid"></div>
+      </div>
+    </section>
+
+    <div class="spotlight" id="spotlight"></div>
+  </main>
+
+  <script>
+    const focusItems = [
+      { key: "all", label: "总览", text: "Provider 可以采集、解析、草拟；Core 掌握最终发送、记忆、升级和审计。" },
+      { key: "provider", label: "Provider", text: "Provider 是可替换能力源，分为证据、解析、执行、模型草稿四类，默认不能触碰正式客户权限。" },
+      { key: "core", label: "Core", text: "Core 是运行时权威：outbox、发送、客户档案、授权等级、stale、重复回复和审计都归 Core。" },
+      { key: "white", label: "白名单", text: "白名单分入站、自动发送、Project A 陌生开发豁免三层；可信对话仍受 Core 和中间层保护。" },
+      { key: "add", label: "真实添加", text: "real_add_sent 不等于 accepted；只有确认通过后才生成首聊待审核。" },
+      { key: "chat", label: "C 类首聊", text: "C 类只做自然补档和方向确认；价格、合同、付款、发票等敏感内容转人工/B-A 审核。" }
+    ];
+
+    const layers = [
+      {
+        key: "provider",
+        title: "Provider",
+        cls: "provider",
+        owner: "能力源",
+        cells: [
+          ["证据 Provider", [
+            "采集公开网页、RSS、公众号 URL、人工输入、历史线索。",
+            "只返回原始证据、来源、成本、健康状态。",
+            "不得写正式客户档案，不得添加微信，不得发送消息。"
+          ]],
+          ["解析 Provider", [
+            "把电话、wxid、关键词解析为 v3/v4/scene 等执行凭据。",
+            "必须带 --apply、--allow-provider-lookup、--operator。",
+            "只能更新 Lead 侧 provider_resolution_json，不能调用最终添加 API。"
+          ]],
+          ["执行 Provider", [
+            "只在显式闸门全部通过后执行外部动作。",
+            "真实添加需要 confirm-real-add、allow-wechat-api、operator、kill_switch=false。",
+            "真实消息发送必须通过 Core outbox 和 Middleware approve-send。"
+          ]]
+        ]
+      },
+      {
+        key: "project",
+        title: "Project A",
+        cls: "project",
+        owner: "流程编排",
+        cells: [
+          ["Lead 预备库", [
+            "接收 Provider 证据和人工输入。",
+            "做实体提取、身份链接、评分、去重、建议动作。",
+            "本地微信历史只能 enrich，不能单独变成真实添加。"
+          ]],
+          ["待添加队列", [
+            "候选池可以宽进，执行端必须严出。",
+            "必须经过 provider resolution 才能 ready_for_real_add。",
+            "时间窗、频率、kill switch、operator gate 必须通过。"
+          ]],
+          ["C 类草稿", [
+            "新线索默认 C 类。",
+            "只有 accepted/real_accepted 后才生成首聊待审核。",
+            "C 类只能补档和确认方向，不能谈价格、合同、付款。"
+          ]]
+        ]
+      },
+      {
+        key: "core",
+        title: "Ruoshui Core",
+        cls: "core",
+        owner: "最终权限",
+        cells: [
+          ["Outbox", [
+            "Core 创建、复用、取消、stale 和发送 outbox。",
+            "客户有新入站时旧草稿自动失效。",
+            "发送前必须过 outbound guard 和 middleware approve-send。"
+          ]],
+          ["客户记忆", [
+            "Unified DB 是唯一运行事实底座。",
+            "Provider/Hermes/Codex 只能提出候选更新。",
+            "正式 contacts、profiles、authorizations 由 Core 校验写入。"
+          ]],
+          ["等级升级", [
+            "S/A/B/C/D/unknown 由 Core 掌握。",
+            "Project A 只能申请 B/A，不得自升。",
+            "profile patch 必须忽略 authorization_level 等禁改字段。"
+          ]]
+        ]
+      },
+      {
+        key: "white",
+        title: "白名单",
+        cls: "white",
+        owner: "可信范围",
+        cells: [
+          ["入站 allowlist", [
+            "私聊 wxid 在 AGENT_CORE_ALLOW_WXIDS 才进入 Core。",
+            "群聊 chatroom 在 AGENT_CORE_ALLOW_CHATROOMS 才可能进入 Core。",
+            "群聊还必须明确 @ 若水或 raw at 字段命中 self wxid。"
+          ]],
+          ["自动发送 allowlist", [
+            "CORE_AUTO_SEND_DM_WXIDS 指定私聊可自动发送。",
+            "CORE_AUTO_SEND_CHATROOMS 指定群可自动发送。",
+            "S 级授权且 allowed_actions 允许时可自动回复。"
+          ]],
+          ["Project A 豁免", [
+            "白名单私聊、白名单群、内部线程豁免陌生开发话术限制。",
+            "S/A/B 授权联系人豁免 C 类陌生开发限制。",
+            "豁免后仍受 Core outbox、stale、出站安全、中间层保护。"
+          ]]
+        ]
+      },
+      {
+        key: "gate",
+        title: "Middleware",
+        cls: "gate",
+        owner: "运输保护",
+        cells: [
+          ["approve-send", [
+            "Core 只调用中间层 approve-send。",
+            "confirm=true 才能进入真实发送。",
+            "长文本由 Core 拆段，中间层按节奏发送。"
+          ]],
+          ["DLL 发送", [
+            "Hermes 不直接调用 DLL。",
+            "Project A 不直接调用 DLL。",
+            "真实微信发送始终由中间层转 DLL。"
+          ]],
+          ["二次拦截", [
+            "中间层保留最终运输安全检查。",
+            "发送失败、风险命中、scope 不对都可阻断。",
+            "PC 微信 UI 不刷新不等于发送失败，以 API 回执为准。"
+          ]]
+        ]
+      }
+    ];
+
+    const allowCards = [
+      {
+        key: "white",
+        title: "1. Middleware 入站白名单",
+        body: [
+          "私聊 sender wxid 必须在 AGENT_CORE_ALLOW_WXIDS。",
+          "群聊 chatroom 必须在 AGENT_CORE_ALLOW_CHATROOMS。",
+          "群聊必须明确 @ruo / @若水 / raw at self wxid。",
+          "不满足条件只记录 skipped，不进入 Core。",
+          "进入 Core 后私聊 role=partner，群聊 role=tool_agent。"
+        ]
+      },
+      {
+        key: "white",
+        title: "2. Core 自动发送白名单",
+        body: [
+          "CORE_AUTO_SEND_DM_WXIDS 命中时进入可信自动发送范围。",
+          "CORE_AUTO_SEND_CHATROOMS 命中且已通过 @ 门时进入可信自动发送范围。",
+          "customer_authorizations.customer_level 在 CORE_AUTO_SEND_S_LEVELS 时可自动回复。",
+          "Hermes needs_human 在可信范围内只是审核信号，不一定一票否决。",
+          "outbound guard、stale、重复 outbox、中间层失败仍可阻断。"
+        ]
+      },
+      {
+        key: "white",
+        title: "3. Project A C 类豁免",
+        body: [
+          "只限制 Project A 陌生 C 类客户开发。",
+          "白名单私聊、白名单群、内部/操作者线程豁免。",
+          "S/A/B 授权联系人豁免。",
+          "豁免后不受一问一答、35-95 秒、禁服务词等 C 类陌生话术限制。",
+          "豁免后仍走正常 Core 授权、outbox、guard、auto-send 策略。"
+        ]
+      }
+    ];
+
+    const truths = [
+      ["白名单不是无规则", "只是豁免陌生开发限制，仍走 Core/outbox/中间层保护。"],
+      ["Provider 不能越权", "不能直接写客户档案、升级等级或发送微信。"],
+      ["real_add_sent 不是通过", "只有 accepted 后才进入 C 类首聊候选。"],
+      ["Hermes 不是权威库", "Hermes 生成草稿和推理，Core 校验并写入。"]
+    ];
+
+    const flow = [
+      { key: "provider", title: "证据 / 人工输入", body: [
+        "允许公开网页、RSS、公众号 URL、电话、wxid、历史线索进入候选池。",
+        "人工输入先 stage，不直接认为已具备公开证据。",
+        "所有来源必须保留 provider/source/evidence metadata。"
+      ], tag: "高摄入" },
+      { key: "project", title: "Lead 预备库", body: [
+        "提取公司、人名、电话、微信、产品、地区、角色。",
+        "评分、去重、证据挂链，输出 observe/enrich/pending_add/reject。",
+        "本地微信历史线索默认只能 enrich。"
+      ], tag: "低风险" },
+      { key: "add", title: "Provider Resolution", body: [
+        "用 phone/wxid/keyword 搜索并取详情。",
+        "必须解析出 v3/v4/scene 等凭据。",
+        "缺 token 只能 needs_provider_resolution，不得真实添加。"
+      ], tag: "解析闸门" },
+      { key: "add", title: "真实添加 Gate", body: [
+        "必须 --apply + --confirm-real-add + --allow-wechat-api。",
+        "必须有 operator，kill_switch=false。",
+        "只能北京时间 10:00-18:00 执行。"
+      ], tag: "高风险" },
+      { key: "chat", title: "通过后首聊", body: [
+        "real_add_sent 只代表请求已发，不代表通过。",
+        "只有 accepted/real_accepted 后生成 C 类首聊候选。",
+        "首聊进入 Core action_request，再走 outbox/preflight/middleware。"
+      ], tag: "Core 发送" }
+    ];
+
+    const owners = [
+      ["原始证据采集", "collect/stage", "请求与入库 Lead 表", "校验后才进运行记忆"],
+      ["微信 token 解析", "search/detail/v3/v4", "保存解析状态", "风险阻断"],
+      ["真实添加", "闸门后执行", "批次计划和执行申请", "账号/频率/kill 策略"],
+      ["首聊发送", "可做草稿后端", "生成 action_request", "outbox/preflight/send"],
+      ["客户档案", "只能建议", "只能补档候选", "正式写入和审计"],
+      ["客户等级", "无权", "只能申请升级", "决定并写 authorization"]
+    ];
+
+    const decisions = [
+      ["公开证据命中", "存 raw evidence，评分进入 Lead 流程"],
+      ["本地微信历史线索", "只能 enrich，不直接待添加"],
+      ["电话/wxid 人工输入", "先 stage/enrich/resolve，不自动视为公开证据"],
+      ["解析到 v3/v4", "其他闸门通过后 ready_for_real_add"],
+      ["已发送添加", "等待结果，不发首聊"],
+      ["好友已通过", "生成 C 草稿和 Core action_request"],
+      ["C 类问价格/合同/付款", "人工审核，不在 C 类自动继续"],
+      ["白名单私聊/群", "走可信 Core 策略，豁免陌生开发话术限制"]
+    ];
+
+    const metrics = [
+      ["15", "raw_web_evidence 原始证据"],
+      ["13", "lead_pre_pool Lead 预备库"],
+      ["13", "lead_add_queue 待添加/候选"],
+      ["5", "needs_provider_resolution 待解析"],
+      ["4", "real_add_sent 已发添加"],
+      ["3", "pending 首聊审核"]
+    ];
+
+    const modules = [
+      {
+        key: "provider",
+        title: "Provider 协议与低成本采集",
+        status: "done",
+        statusText: "已开发",
+        workload: "小",
+        percent: 90,
+        done: [
+          "Provider contract 已定义。",
+          "manual_import / jina_reader / rss_feed / local_wechat_history 已有验证。",
+          "Provider 质量、成本、有效率报告已具备。"
+        ],
+        todo: [
+          "接入更稳定的公开搜索 Provider。",
+          "后续接企查查/天眼查/爱企查等高成本 Provider。"
+        ]
+      },
+      {
+        key: "project",
+        title: "Lead 预备库与评分链路",
+        status: "done",
+        statusText: "已开发",
+        workload: "中",
+        percent: 85,
+        done: [
+          "raw evidence -> entity extraction -> lead_pre_pool -> scoring 已跑通。",
+          "add_queue 候选池已建立。",
+          "本地历史线索只 enrich，不直接真实添加。"
+        ],
+        todo: [
+          "增加更多样本量。",
+          "把评分阈值和人工反馈闭环做细。"
+        ]
+      },
+      {
+        key: "add",
+        title: "Provider Resolution 与真实添加",
+        status: "doing",
+        statusText: "进行中",
+        workload: "中",
+        percent: 60,
+        done: [
+          "provider token 解析工具已建。",
+          "真实添加执行闸门已建。",
+          "已支持 real_add_sent / accepted / rejected / blocked 结果写回。",
+          "一个测试账号已完成定向解析和真实好友申请，当前等待通过。"
+        ],
+        todo: [
+          "处理 5 条 needs_provider_resolution。",
+          "完善失败重试、不可解析归档、批量节奏控制。",
+          "真实添加只在北京时间 10:00-18:00 执行。"
+        ]
+      },
+      {
+        key: "chat",
+        title: "通过后 C 类首聊",
+        status: "doing",
+        statusText: "进行中",
+        workload: "中",
+        percent: 55,
+        done: [
+          "首聊模板、角色文件、人感规则已建。",
+          "白名单/SAB 豁免已建。",
+          "未 accepted 不进入发送审核，旧 pending 会 superseded。"
+        ],
+        todo: [
+          "跑通真实 accepted 后的首聊审核和发送闭环。",
+          "补发送结果回写和防重复执行器。"
+        ]
+      },
+      {
+        key: "chat",
+        title: "Project A Conversation Orchestrator",
+        status: "todo",
+        statusText: "待开发",
+        workload: "大",
+        percent: 15,
+        done: [
+          "已有 C 类回复路由规则。",
+          "已有白名单豁免函数。",
+          "已有角色口径和敏感词边界。"
+        ],
+        todo: [
+          "建立完整对话状态机：首聊、已回复、补档、冷却、升 B/A、人工接管。",
+          "接 Hermes 作为可替换草稿 Provider。",
+          "统一 dm_allowlist / chatroom_allowlist / operator/internal / S/A/B 判断。"
+        ]
+      },
+      {
+        key: "chat",
+        title: "C 类跟聊模板与节奏",
+        status: "todo",
+        statusText: "待开发",
+        workload: "中",
+        percent: 20,
+        done: [
+          "采购/货源/行情/敏感/拒绝/不清楚的路由已有。",
+          "禁止客服感、机器人感、连续追问的规则已有。"
+        ],
+        todo: [
+          "补每种回复的下一句话模板。",
+          "补不回复冷却、再次触达、对方反问身份、索要报价的处理。",
+          "补多轮节奏和发送间隔策略。"
+        ]
+      },
+      {
+        key: "core",
+        title: "Core outbox / preflight / 真实发送执行器",
+        status: "doing",
+        statusText: "进行中",
+        workload: "中",
+        percent: 65,
+        done: [
+          "Core action_request contract 已建。",
+          "after-add outbox review 和 preflight 已建。",
+          "默认不真实发送，需显式 allow-real-send / confirm / operator。"
+        ],
+        todo: [
+          "完善只发 approved outbox 的执行器。",
+          "补发送失败回写、发送审计、限频和防重复。",
+          "把 after-add 首聊发送和现有 Core 自动发送策略对齐。"
+        ]
+      },
+      {
+        key: "white",
+        title: "白名单与可信对话统一规则",
+        status: "doing",
+        statusText: "进行中",
+        workload: "小",
+        percent: 70,
+        done: [
+          "三层白名单规则已文档化。",
+          "Project A C 类豁免已进 after_add_chatbot。",
+          "规则动态图已条款化。"
+        ],
+        todo: [
+          "把统一豁免判断接入更多运行入口。",
+          "把实际白名单配置和运行状态上图自动刷新。"
+        ]
+      }
+    ];
+
+    let active = "all";
+
+    function isActive(key) {
+      return active === "all" || active === key;
+    }
+
+    function renderToolbar() {
+      const toolbar = document.getElementById("toolbar");
+      toolbar.innerHTML = focusItems.map(item => (
+        `<button class="chip ${active === item.key ? "active" : ""}" data-key="${item.key}">${item.label}</button>`
+      )).join("");
+      toolbar.querySelectorAll("button").forEach(btn => {
+        btn.addEventListener("click", () => {
+          active = btn.dataset.key;
+          renderAll();
+        });
+      });
+    }
+
+    function renderRules(value) {
+      if (Array.isArray(value)) {
+        return `<ol class="rule-list">${value.map(rule => `<li>${rule}</li>`).join("")}</ol>`;
+      }
+      return `<span>${value}</span>`;
+    }
+
+    function renderLayers() {
+      document.getElementById("layers").innerHTML = layers.map(layer => `
+        <div class="layer ${isActive(layer.key) ? "active" : ""}">
+          <div class="layer-title ${layer.cls}">${layer.title}</div>
+          <div class="layer-body">
+            ${layer.cells.map(cell => `
+              <div class="mini">
+                <strong>${cell[0]}</strong>
+                ${renderRules(cell[1])}
+              </div>
+            `).join("")}
+          </div>
+          <div class="owner">${layer.owner}</div>
+        </div>
+      `).join("");
+    }
+
+    function renderAllowlist() {
+      document.getElementById("allowlist").innerHTML = allowCards.map(card => `
+        <div class="allow-card ${isActive(card.key) ? "active" : ""}">
+          <h3>${card.title}</h3>
+          ${Array.isArray(card.body) ? renderRules(card.body) : `<p>${card.body}</p>`}
+        </div>
+      `).join("");
+    }
+
+    function renderTruths() {
+      document.getElementById("truthGrid").innerHTML = truths.map(item => `
+        <div class="truth-item">
+          <strong>${item[0]}</strong>
+          <span>${item[1]}</span>
+        </div>
+      `).join("");
+    }
+
+    function renderFlow() {
+      document.getElementById("flowMap").innerHTML = flow.map(item => `
+        <div class="node ${isActive(item.key) ? "active" : ""}">
+          <h3>${item.title}</h3>
+          ${Array.isArray(item.body) ? renderRules(item.body) : `<p>${item.body}</p>`}
+          <span class="tag">${item.tag}</span>
+        </div>
+      `).join("");
+    }
+
+    function renderTables() {
+      document.getElementById("ownerRows").innerHTML = owners.map(row => `
+        <tr>
+          <td><strong>${row[0]}</strong></td>
+          <td>${row[1]}</td>
+          <td>${row[2]}</td>
+          <td><span class="ok">${row[3]}</span></td>
+        </tr>
+      `).join("");
+
+      document.getElementById("decisionRows").innerHTML = decisions.map(row => `
+        <tr>
+          <td><strong>${row[0]}</strong></td>
+          <td>${row[1]}</td>
+        </tr>
+      `).join("");
+    }
+
+    function renderMetrics() {
+      document.getElementById("metrics").innerHTML = metrics.map(item => `
+        <div class="metric">
+          <strong>${item[0]}</strong>
+          <span>${item[1]}</span>
+        </div>
+      `).join("");
+    }
+
+    function renderModules() {
+      document.getElementById("moduleGrid").innerHTML = modules.map(item => `
+        <div class="module-card ${isActive(item.key) ? "active" : ""}">
+          <div class="module-top">
+            <h3>${item.title}</h3>
+            <span class="pill ${item.status}">${item.statusText}</span>
+          </div>
+          <div class="workload">
+            <span>开发量：${item.workload}</span>
+            <div class="bar"><i style="width:${item.percent}%"></i></div>
+          </div>
+          <h4>已完成</h4>
+          ${renderRules(item.done)}
+          <h4>待开发</h4>
+          ${renderRules(item.todo)}
+        </div>
+      `).join("");
+    }
+
+    function renderSpotlight() {
+      const current = focusItems.find(item => item.key === active) || focusItems[0];
+      document.getElementById("spotlight").textContent = current.text;
+    }
+
+    function renderAll() {
+      renderToolbar();
+      renderLayers();
+      renderAllowlist();
+      renderTruths();
+      renderFlow();
+      renderTables();
+      renderMetrics();
+      renderModules();
+      renderSpotlight();
+    }
+
+    renderAll();
+    setInterval(() => {
+      const index = focusItems.findIndex(item => item.key === active);
+      const next = focusItems[(index + 1) % focusItems.length];
+      active = next.key;
+      renderAll();
+    }, 4200);
+  </script>
+</body>
+</html>

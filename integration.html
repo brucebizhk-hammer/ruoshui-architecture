@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>若水成熟模块接入与一体化评估</title>
+  <style>
+    :root{--bg:#f4f7fb;--panel:#fff;--ink:#172033;--muted:#64748b;--line:#cbd5e1;--blue:#2563eb;--green:#15803d;--amber:#b45309;--red:#b91c1c;--navy:#111827;--cyan:#0e7490}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:"Microsoft YaHei","PingFang SC","Segoe UI",Arial,sans-serif;letter-spacing:0}
+    header{background:var(--navy);color:#fff;padding:28px 34px 24px}h1{margin:0;font-size:38px;line-height:1.18}header p{margin:10px 0 0;color:#cbd5e1;font-size:17px;line-height:1.55}.page{max-width:1560px;margin:auto;padding:20px 24px 38px}
+    .nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}.nav a,.filter{border:1px solid var(--line);background:#fff;color:#334155;text-decoration:none;border-radius:6px;padding:8px 11px;font-size:13px;font-weight:800;cursor:pointer}.filter.active{border-color:var(--blue);background:#eff6ff;color:#1d4ed8}
+    .band{border:1px solid var(--line);background:#fff;border-radius:8px;margin-bottom:16px}.band-title{padding:16px 18px 12px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;gap:12px;align-items:baseline}.band-title h2{margin:0;font-size:22px}.note{color:var(--muted);font-size:13px;font-weight:700}
+    .summary{display:grid;grid-template-columns:1.25fr 1fr 1fr 1fr;gap:0}.summary>div{padding:18px;border-right:1px solid #e2e8f0}.summary>div:last-child{border-right:0}.summary strong{display:block;font-size:32px;color:var(--blue);margin:6px 0}.summary p{margin:0;color:#475569;line-height:1.5;font-size:14px}
+    .principle{padding:14px 18px;background:#eff6ff;border-left:5px solid var(--blue);font-size:16px;font-weight:800;line-height:1.55;color:#1e3a8a;margin-bottom:16px}
+    .architecture{padding:18px}.flow{display:grid;grid-template-columns:1.1fr 56px 1.15fr 56px 1.25fr 56px 1.1fr;align-items:stretch;gap:8px}.stage{border:1px solid #bfdbfe;background:#eff6ff;border-radius:8px;padding:14px;min-height:180px}.stage.core{border-color:#fecaca;background:#fff1f2}.stage.data{border-color:#bbf7d0;background:#f0fdf4}.stage.ops{border-color:#fde68a;background:#fffbeb}.stage h3{margin:0 0 9px;font-size:18px}.stage ul{margin:0;padding-left:19px;color:#475569;font-size:13px;line-height:1.5}.arrow{display:flex;align-items:center;justify-content:center;color:#64748b;font-size:28px;font-weight:900}
+    .target-flow{display:grid;grid-template-columns:1fr 38px 1.2fr 38px 1.15fr 38px 1.25fr 38px 1fr;gap:6px;align-items:stretch}.target-flow .stage{min-height:225px}.stage .tool{display:block;margin:6px 0;padding:6px 8px;border-left:3px solid var(--blue);background:#fff;font-size:12px;font-weight:800;color:#334155}.stage .tool.isolated{border-color:var(--cyan)}.stage .tool.existing{border-color:var(--green)}
+    .support-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}.support{border:1px dashed #94a3b8;border-radius:7px;padding:10px;background:#f8fafc}.support b{display:block;font-size:13px}.support span{color:#64748b;font-size:12px;line-height:1.4}
+    .confirm-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:18px}.confirm-box{border:1px solid #e2e8f0;border-radius:8px;padding:14px}.confirm-box h3{margin:0 0 10px;font-size:18px}.confirm-row{display:grid;grid-template-columns:120px 1fr 90px;gap:10px;padding:9px 0;border-bottom:1px solid #e2e8f0;align-items:start}.confirm-row:last-child{border-bottom:0}.confirm-row b{font-size:13px}.confirm-row span{font-size:13px;color:#475569;line-height:1.4}.decision-status{font-size:12px!important;font-weight:900!important;text-align:center;padding:4px 6px;border-radius:99px}.recommend{background:#dcfce7;color:#166534!important}.defer{background:#fee2e2;color:#991b1b!important}.keep{background:#dbeafe;color:#1d4ed8!important}
+    .phases{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:18px}.phase{border-top:4px solid var(--blue);background:#f8fafc;padding:13px;border-radius:6px;min-height:170px}.phase b{font-size:22px;color:var(--blue)}.phase h3{font-size:15px;margin:5px 0}.phase p{font-size:13px;color:#475569;line-height:1.45;margin:0}
+    .module-list{padding:0 18px 18px}.module{display:grid;grid-template-columns:170px 110px 1.25fr .9fr .95fr 120px;gap:12px;align-items:start;border-bottom:1px solid #e2e8f0;padding:15px 0}.module:last-child{border-bottom:0}.module.dim{display:none}.module h3{margin:0;font-size:16px;line-height:1.35}.module h3 a{color:#172033}.module p{margin:0;color:#475569;font-size:13px;line-height:1.5}.pill{display:inline-block;border-radius:99px;padding:5px 8px;font-size:12px;font-weight:900;text-align:center}.adopt{background:#dcfce7;color:#166534}.isolate{background:#cffafe;color:#155e75}.borrow{background:#fef3c7;color:#92400e}.reject{background:#fee2e2;color:#991b1b}.size{font-weight:900;color:#334155;font-size:13px}.risk-low{color:#15803d}.risk-mid{color:#b45309}.risk-high{color:#b91c1c}
+    .matrix{padding:0 18px 18px;overflow:auto}table{border-collapse:collapse;width:100%;min-width:880px;font-size:13px}th,td{padding:11px 10px;border-bottom:1px solid #e2e8f0;text-align:left;vertical-align:top;line-height:1.45}th{background:#f8fafc;color:#334155}.yes{color:#b91c1c;font-weight:900}.no{color:#15803d;font-weight:900}.conditional{color:#b45309;font-weight:900}
+    .package{padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:18px}.pack{border-left:4px solid var(--blue);padding:4px 0 4px 14px}.pack h3{margin:0 0 7px;font-size:18px}.pack p{margin:0;color:#475569;line-height:1.55;font-size:14px}.pack.keep{border-color:var(--green)}.pack.optional{border-color:var(--amber)}.pack.block{border-color:var(--red)}
+    .workload{padding:18px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}.work{border:1px solid #e2e8f0;border-radius:8px;padding:14px}.work b{display:block;font-size:28px;color:var(--blue)}.work span{color:#475569;font-size:13px;line-height:1.45}.bar{height:10px;background:#e2e8f0;border-radius:99px;overflow:hidden;margin:10px 0}.bar i{display:block;height:100%;background:var(--blue)}
+    .decision{padding:18px;background:#111827;color:#fff;border-radius:8px;margin-top:16px}.decision h2{margin:0 0 10px;font-size:22px}.decision p{margin:0;color:#dbeafe;line-height:1.65;font-size:15px}
+    @media(max-width:980px){header{padding:24px 18px 20px}h1{font-size:28px}.page{padding:14px 12px 28px}.summary{grid-template-columns:1fr 1fr}.summary>div:nth-child(2){border-right:0}.summary>div{border-bottom:1px solid #e2e8f0}.flow,.target-flow{grid-template-columns:1fr}.arrow{transform:rotate(90deg);height:32px}.module{grid-template-columns:1fr}.module>*{margin-bottom:2px}.package,.workload,.confirm-grid,.phases,.support-strip{grid-template-columns:1fr}.confirm-row{grid-template-columns:90px 1fr 78px}.band-title{display:block}.note{display:block;margin-top:6px}.stage,.target-flow .stage{min-height:0}}
+  </style>
+</head>
+<body>
+  <header><h1>若水成熟模块接入与一体化评估</h1><p>目标：复用成熟能力，减少重复开发；外部模块不拥有客户状态、权限、记忆和微信发送权。数据快照：2026-07-11</p></header>
+  <main class="page">
+    <div class="nav"><a href="index.html">← 返回首页</a><button class="filter active" data-k="all">全部</button><button class="filter" data-k="adopt">直接接入</button><button class="filter" data-k="isolate">隔离接入</button><button class="filter" data-k="borrow">只借鉴</button><button class="filter" data-k="reject">暂不采用</button></div>
+    <div class="principle">总原则：每类能力只选一个主工具。成熟模块通过 Provider Adapter 接入；Core 继续是唯一的策略、状态、审批、记忆和动作控制中心。</div>
+
+    <section class="band">
+      <div class="band-title"><h2>评估结论</h2><span class="note">不是把所有热门项目装一遍</span></div>
+      <div class="summary">
+        <div><span>建议直接/隔离接入</span><strong>7 类</strong><p>采集、动态浏览、正文抽取、身份标准化、调度、监控、表达风格。</p></div>
+        <div><span>明确不进入 Core</span><strong>6 类</strong><p>Dify、Firecrawl、Crawlee、LangGraph、向量数据库和新微信框架。</p></div>
+        <div><span>预计净减少剩余开发</span><strong>15–20%</strong><p>省掉通用能力自研，但仍需适配、测试、风控和运维。</p></div>
+        <div><span>新增常驻核心服务</span><strong>0</strong><p>首期都做库或按需 Worker，不引入 Redis、Kafka、Celery 等基础设施。</p></div>
+      </div>
+    </section>
+
+    <section class="band">
+      <div class="band-title"><h2>待确认的最终主结构</h2><span class="note">主图只放建议采用的模块</span></div>
+      <div class="architecture">
+        <div class="target-flow">
+          <div class="stage"><h3>1. 主题与入口</h3><ul><li>人工设定硫磺/地区/角色主题</li><li>人工联系人、微信群、文章</li><li>公开网站和行业目录</li></ul><span class="tool existing">现有：Campaign / Manual Import</span></div><div class="arrow">→</div>
+          <div class="stage"><h3>2. Provider Worker</h3><span class="tool">Scrapy：静态站点</span><span class="tool">Playwright：动态页面</span><span class="tool isolated">MediaCrawler：中文社媒隔离运行</span><ul><li>统一限速、重试和缓存</li><li>只产出原始证据</li></ul></div><div class="arrow">→</div>
+          <div class="stage data"><h3>3. 清洗与身份</h3><span class="tool">Trafilatura：正文抽取</span><span class="tool">phonenumbers：电话标准化</span><span class="tool">RapidFuzz：简称/别名辅助去重</span><ul><li>微信号仍是最高身份键</li><li>输出 Evidence / Candidate</li></ul></div><div class="arrow">→</div>
+          <div class="stage core"><h3>4. Ruoshui Core</h3><span class="tool existing">现有：Policy / Memory / Audit</span><span class="tool existing">现有：Lifecycle / Action Gateway</span><ul><li>Provider解析和真实加微门禁</li><li>C/B/A状态与人工审批</li><li>Hermes只作为模型Provider</li><li>唯一业务控制中心</li></ul></div><div class="arrow">→</div>
+          <div class="stage"><h3>5. 执行与闭环</h3><span class="tool existing">现有：WeChat Middleware</span><ul><li>好友申请和消息发送</li><li>成功/失败/通过结果回收</li><li>通过后进入C类聊天</li><li>A类人工主导</li></ul><span class="tool">若水轻量“说人话”规则</span></div>
+        </div>
+        <div class="support-strip"><div class="support"><b>APScheduler</b><span>定时、限额、退避，不拥有业务状态</span></div><div class="support"><b>Unified SQLite / FTS5</b><span>唯一事实库，暂不拆图数据库和向量库</span></div><div class="support"><b>Prometheus Client</b><span>只暴露运行指标，不替代审计</span></div><div class="support"><b>Chatwoot</b><span>人工旁路，可断开，不影响主流程</span></div></div>
+      </div>
+    </section>
+
+    <section class="band"><div class="band-title"><h2>请你确认的采用清单</h2><span class="note">确认后才开始安装和接入</span></div><div class="confirm-grid">
+      <div class="confirm-box"><h3>建议进入第一版</h3>
+        <div class="confirm-row"><b>采集</b><span>Scrapy + Playwright，各自负责静态和动态网页</span><span class="decision-status recommend">建议采用</span></div>
+        <div class="confirm-row"><b>社媒</b><span>MediaCrawler独立Worker，不进入Core进程</span><span class="decision-status recommend">隔离采用</span></div>
+        <div class="confirm-row"><b>清洗</b><span>Trafilatura提取正文，减少手写解析</span><span class="decision-status recommend">建议采用</span></div>
+        <div class="confirm-row"><b>身份</b><span>RapidFuzz + phonenumbers，只提供辅助判断</span><span class="decision-status recommend">建议采用</span></div>
+        <div class="confirm-row"><b>调度监控</b><span>APScheduler + Prometheus Client，保持轻量</span><span class="decision-status recommend">建议采用</span></div>
+        <div class="confirm-row"><b>表达</b><span>裁剪“说人话”规则，不增加第二个Agent</span><span class="decision-status recommend">裁剪采用</span></div>
+      </div>
+      <div class="confirm-box"><h3>建议暂缓或排除</h3>
+        <div class="confirm-row"><b>抓取平台</b><span>Firecrawl、Crawlee与主选能力重叠</span><span class="decision-status defer">暂不采用</span></div>
+        <div class="confirm-row"><b>Agent框架</b><span>LangGraph只借鉴暂停/恢复模式</span><span class="decision-status defer">不安装</span></div>
+        <div class="confirm-row"><b>低代码平台</b><span>Dify会形成第二控制中心</span><span class="decision-status defer">不进主链</span></div>
+        <div class="confirm-row"><b>重型数据库</b><span>Neo4j/Qdrant/ES等性能需要出现后再评估</span><span class="decision-status defer">暂缓</span></div>
+        <div class="confirm-row"><b>微信框架</b><span>Wechaty与现有DLL/Middleware冲突</span><span class="decision-status defer">明确排除</span></div>
+        <div class="confirm-row"><b>现有核心</b><span>Core、Unified DB、Middleware、Hermes接口继续保留</span><span class="decision-status keep">继续使用</span></div>
+      </div>
+    </div></section>
+
+    <section class="band"><div class="band-title"><h2>确认后的接入顺序</h2><span class="note">逐批验证，任何一批都可撤回</span></div><div class="phases">
+      <div class="phase"><b>01</b><h3>轻量底座</h3><p>先接Trafilatura、RapidFuzz、phonenumbers、APScheduler和指标。没有外部账号风险。</p></div>
+      <div class="phase"><b>02</b><h3>网页采集</h3><p>接Scrapy与Playwright Provider，只进入预备库；验证去重、限速和证据质量。</p></div>
+      <div class="phase"><b>03</b><h3>中国社媒</h3><p>MediaCrawler隔离运行，先小规模主题采集；出现风控时可整体停用。</p></div>
+      <div class="phase"><b>04</b><h3>聊天表达</h3><p>用历史C类对话A/B测试轻量“说人话”规则，通过事实保真后再启用。</p></div>
+    </div></section>
+
+    <section class="band">
+      <div class="band-title"><h2>模块选择、用途、体量与边界</h2><span class="note">点击上方按钮筛选</span></div>
+      <div class="module-list" id="modules">
+        <article class="module" data-kind="adopt"><h3><a href="https://github.com/scrapy/scrapy">Scrapy</a></h3><span class="pill adopt">直接接入</span><p>负责企业站、招投标、行业目录等静态和结构化页面。输出统一 Evidence。</p><p><b>体量：</b>中；Python 库，不新增常驻服务。</p><p><b>避免冲突：</b>不负责动态浏览，不自己写客户库。</p><span class="size risk-low">风险：低</span></article>
+        <article class="module" data-kind="adopt"><h3><a href="https://github.com/microsoft/playwright">Playwright</a></h3><span class="pill adopt">按需接入</span><p>只处理必须执行 JavaScript、滚动、点击、登录态的网页。</p><p><b>体量：</b>大；浏览器约数百 MB，任务时启动。</p><p><b>避免冲突：</b>不再同时引入 Crawlee 编排层。</p><span class="size risk-mid">风险：中</span></article>
+        <article class="module" data-kind="isolate"><h3><a href="https://github.com/NanmiCoder/MediaCrawler">MediaCrawler</a></h3><span class="pill isolate">隔离接入</span><p>负责小红书、抖音、微博、B站、贴吧、知乎等中文社媒公开线索。</p><p><b>体量：</b>本地源码约 24.2MB；登录态和反爬维护较重。</p><p><b>避免冲突：</b>独立 Worker，只交付证据，不进入 Core 进程。</p><span class="size risk-high">风险：高</span></article>
+        <article class="module" data-kind="adopt"><h3><a href="https://github.com/adbar/trafilatura">Trafilatura</a></h3><span class="pill adopt">直接接入</span><p>把网页正文、标题、日期和链接清洗成稳定文本，替代手写正文解析。</p><p><b>体量：</b>中；Python 库，按任务调用。</p><p><b>避免冲突：</b>只做抽取，不做抓取调度和知识判断。</p><span class="size risk-low">风险：低</span></article>
+        <article class="module" data-kind="adopt"><h3><a href="https://github.com/rapidfuzz/RapidFuzz">RapidFuzz</a> + phonenumbers</h3><span class="pill adopt">直接接入</span><p>标准化手机号；辅助识别公司简称、人名别名和重复线索。</p><p><b>体量：</b>轻；库级依赖，无常驻进程。</p><p><b>避免冲突：</b>微信号仍是最高身份键，模糊匹配只给建议。</p><span class="size risk-low">风险：低</span></article>
+        <article class="module" data-kind="adopt"><h3><a href="https://github.com/agronholm/apscheduler">APScheduler</a></h3><span class="pill adopt">直接接入</span><p>负责采集批次、限额节奏、重试和定时补证；状态仍写入数据库。</p><p><b>体量：</b>轻；Python 库，不需要 Redis。</p><p><b>避免冲突：</b>不引入 Celery/Temporal，Core 仍拥有工作流状态。</p><span class="size risk-low">风险：低</span></article>
+        <article class="module" data-kind="adopt"><h3><a href="https://github.com/prometheus/client_python">Prometheus Client</a></h3><span class="pill adopt">直接接入</span><p>暴露 Provider 成功率、延迟、成本、重复率、门禁拒绝率和积压。</p><p><b>体量：</b>轻；先只提供 /metrics，不部署完整监控集群。</p><p><b>避免冲突：</b>业务审计仍在 Unified DB。</p><span class="size risk-low">风险：低</span></article>
+        <article class="module" data-kind="borrow"><h3><a href="https://github.com/MrGeDiao/shuorenhua">“说人话”规则</a></h3><span class="pill borrow">裁剪借鉴</span><p>提取事实保护、聊天轻改写和 AI 套话检测，形成若水专用风格规则。</p><p><b>体量：</b>仓库约 4.4MB；实际进入提示词仅几 KB。</p><p><b>避免冲突：</b>不是第二个 Agent，不拥有记忆或业务判断。</p><span class="size risk-low">风险：低</span></article>
+        <article class="module" data-kind="borrow"><h3><a href="https://github.com/langchain-ai/langgraph">LangGraph</a></h3><span class="pill borrow">只借鉴</span><p>借鉴状态图、暂停、恢复和人工接管模式，不把框架装进现有 Core。</p><p><b>体量：</b>大；完整生态和现有状态机重叠。</p><p><b>冲突：</b>会形成第二套状态、记忆和工作流控制。</p><span class="size risk-high">风险：高</span></article>
+        <article class="module" data-kind="reject"><h3><a href="https://github.com/firecrawl/firecrawl">Firecrawl</a></h3><span class="pill reject">首期不采用</span><p>抓取和转 Markdown 能力成熟，但与 Scrapy、Playwright、Trafilatura高度重叠。</p><p><b>体量：</b>重；自托管服务链较大，AGPL-3.0。</p><p><b>替代：</b>仅在特殊站点作为付费 API 兜底。</p><span class="size risk-high">冗余：高</span></article>
+        <article class="module" data-kind="reject"><h3><a href="https://github.com/apify/crawlee-python">Crawlee</a></h3><span class="pill reject">首期不采用</span><p>自带队列、存储和浏览器编排，但会与 Scrapy、Playwright、Core 队列重复。</p><p><b>体量：</b>中到大。</p><p><b>替代：</b>需要大规模浏览器池时再重新评估。</p><span class="size risk-high">冗余：高</span></article>
+        <article class="module" data-kind="reject"><h3><a href="https://github.com/langgenius/dify">Dify</a></h3><span class="pill reject">不进入主链</span><p>适合低代码 Agent 应用，但会复制 Core 的工作流、模型、知识库和权限。</p><p><b>体量：</b>很重；完整平台和多服务部署。</p><p><b>保留：</b>只参考操作台体验，不作为控制中心。</p><span class="size risk-high">冲突：很高</span></article>
+        <article class="module" data-kind="reject"><h3>Neo4j / Qdrant / Elasticsearch</h3><span class="pill reject">暂不采用</span><p>当前数据量使用 SQLite、FTS5 和关系表足够，暂无独立图数据库和向量库收益。</p><p><b>体量：</b>新增多个常驻服务。</p><p><b>升级条件：</b>知识和关系查询达到明确性能瓶颈。</p><span class="size risk-high">冗余：高</span></article>
+        <article class="module" data-kind="reject"><h3>Wechaty / 新微信框架</h3><span class="pill reject">禁止并行</span><p>现有 DLL 19088 + Middleware 已稳定，新增微信框架会产生双通道、重复回调和风控风险。</p><p><b>体量：</b>不仅是代码，还涉及登录协议和账号风险。</p><p><b>结论：</b>保留现有微信通道。</p><span class="size risk-high">冲突：最高</span></article>
+      </div>
+    </section>
+
+    <section class="band"><div class="band-title"><h2>冲突与冗余矩阵</h2><span class="note">为什么不能“成熟的都接进来”</span></div><div class="matrix"><table><thead><tr><th>能力</th><th>主选</th><th>不并行接入</th><th>冲突点</th><th>处理方式</th></tr></thead><tbody>
+      <tr><td>静态采集</td><td>Scrapy</td><td>Firecrawl/Crawlee 全量接管</td><td class="yes">队列、重试、存储重复</td><td>Scrapy 作为主 Provider，其他只做兜底</td></tr>
+      <tr><td>动态浏览</td><td>Playwright</td><td>Crawlee 浏览器编排</td><td class="conditional">功能部分重叠</td><td>直接调用 Playwright，达到规模瓶颈再升级</td></tr>
+      <tr><td>中文社媒</td><td>MediaCrawler</td><td>写入 Core 或客户库</td><td class="yes">登录态、反爬、数据污染</td><td>独立 Worker，只输出 Evidence</td></tr>
+      <tr><td>工作流</td><td>Core 状态机 + APScheduler</td><td>LangGraph/Dify/Temporal</td><td class="yes">第二套状态和审批</td><td>借鉴模式，不引入控制权</td></tr>
+      <tr><td>知识检索</td><td>SQLite FTS5</td><td>Qdrant/Elasticsearch</td><td class="yes">运维和数据同步重复</td><td>性能不足后再按指标升级</td></tr>
+      <tr><td>表达自然化</td><td>若水专用轻规则</td><td>每条消息二次大模型改写</td><td class="conditional">延迟、事实漂移、成本</td><td>先本地检测，只有高 AI 味才触发轻改写</td></tr>
+      <tr><td>微信收发</td><td>现有 Middleware</td><td>Wechaty/其他协议栈</td><td class="yes">重复消息和账号风险</td><td>维持单一通道</td></tr>
+    </tbody></table></div></section>
+
+    <section class="band"><div class="band-title"><h2>最终封装：看起来是一套系统，内部仍可替换</h2><span class="note">逻辑模块化，物理上不过度微服务化</span></div><div class="package">
+      <div class="pack keep"><h3>常驻 1：WeChat Middleware</h3><p>只负责主号/第二号 I/O、媒体、DLL 和发送回执。不做客户等级、业务判断或模型编排。</p></div>
+      <div class="pack keep"><h3>常驻 2：Ruoshui Core</h3><p>单一 API、Policy、Lifecycle、Memory、Action Gateway 和审计。外部工具不能绕开它。</p></div>
+      <div class="pack"><h3>按需 3：Provider Worker</h3><p>一个 Worker 容纳 Scrapy、Playwright、Trafilatura、MediaCrawler Adapter；每种 Provider 可单独启停。</p></div>
+      <div class="pack"><h3>数据 4：Unified DB + 文件仓</h3><p>SQLite 保存状态、证据和审计；原始网页、图片、文件进入对象目录。暂不拆多数据库。</p></div>
+      <div class="pack optional"><h3>旁路 5：Chatwoot / 监控</h3><p>人工接管、只读展示和指标查看。断开不会影响主链运行。</p></div>
+      <div class="pack block"><h3>不允许：第二控制中心</h3><p>Dify、LangGraph、爬虫框架、Chatwoot、Hermes 都不能同时拥有客户状态、审批和发送权。</p></div>
+    </div></section>
+
+    <section class="band"><div class="band-title"><h2>开发量影响</h2><span class="note">成熟模块不是零成本，省的是通用能力自研</span></div><div class="workload">
+      <div class="work"><b>73.9</b><div class="bar"><i style="width:100%"></i></div><span>原新结构剩余工作量单位。包括会话编排、工作流、Provider、风控、运维和交接。</span></div>
+      <div class="work"><b>21–27</b><div class="bar"><i style="width:36%"></i></div><span>成熟模块可替代的通用开发：抓取、正文解析、身份标准化、调度、基础指标。</span></div>
+      <div class="work"><b>10–14</b><div class="bar"><i style="width:19%"></i></div><span>新增适配和验证成本：Provider Adapter、隔离、测试、限速、异常回收和许可审查。</span></div>
+      <div class="work"><b>11–15</b><div class="bar"><i style="width:20%"></i></div><span>预计净节省工作量，约占剩余工作的 15–20%。核心业务逻辑仍需自研。</span></div>
+      <div class="work"><b>0</b><div class="bar"><i style="width:1%"></i></div><span>首期新增常驻基础设施数量。不引入 Redis、Kafka、Celery、独立向量库。</span></div>
+      <div class="work"><b>3</b><div class="bar"><i style="width:25%"></i></div><span>最终核心运行单元：Middleware、Core、按需 Provider Worker；Chatwoot 是可断开的旁路。</span></div>
+    </div></section>
+
+    <div class="decision"><h2>最终建议</h2><p>直接接入 Scrapy、Playwright、Trafilatura、RapidFuzz/phonenumbers、APScheduler 和轻量指标；MediaCrawler 隔离接入；“说人话”只裁剪成若水风格规则。Firecrawl、Crawlee、LangGraph、Dify、独立向量库和新微信框架暂不进入主链。这样能获得成熟能力，同时保持 Core 单一控制权，最终可以封装成一套启动、一套配置、一套审计的一体化系统。</p></div>
+    <section class="band" id="node1-gate-a-status"><div class="band-title"><h2>Project A Node 1 / Gate A</h2><span class="note">2026-07-11 offline verification complete</span></div><div class="decision"><p>public_search provider contract, metrics, error reporting, batch deduplication, temporary-database insertion deduplication, protected-table invariants, disable/stop/pause controls, PID locking, stale-lock recovery, and failure circuit breaker have passed offline verification. No network collection, live Lead/customer database apply, add-friend, or message-send action occurred. Status: stopped at Gate A, awaiting approval for a 2-4 sulfur-query network dry-run.</p></div></section>
+  </main>
+  <script>
+    const buttons=[...document.querySelectorAll('.filter')];
+    buttons.forEach(btn=>btn.addEventListener('click',()=>{buttons.forEach(x=>x.classList.remove('active'));btn.classList.add('active');const k=btn.dataset.k;document.querySelectorAll('.module').forEach(m=>m.classList.toggle('dim',k!=='all'&&m.dataset.kind!==k));}));
+  </script>
+</body>
+</html>
