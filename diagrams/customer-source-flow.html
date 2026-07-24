@@ -1,0 +1,153 @@
+<div id="ruoshui-customer-flow">
+  <style>
+    #ruoshui-customer-flow {
+      color-scheme: light dark;
+      --background: Canvas;
+      --foreground: CanvasText;
+      --card: Canvas;
+      --border: GrayText;
+      --muted-foreground: GrayText;
+      --destructive: Mark;
+      --viz-series-1: Highlight;
+      --viz-series-2: AccentColor;
+      --viz-series-3: LinkText;
+      --viz-series-4: Mark;
+      --viz-series-5: VisitedText;
+      color: var(--foreground);
+      background: var(--background);
+      font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+      padding: 20px;
+    }
+    #ruoshui-customer-flow .meta { display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:14px; color:var(--muted-foreground); }
+    #ruoshui-customer-flow .lane { display:grid; grid-template-columns:1.05fr 34px 1.1fr 34px 1.1fr 34px 1.05fr; gap:8px; align-items:stretch; margin-bottom:12px; }
+    #ruoshui-customer-flow .node { min-width:0; border:1px solid var(--border); border-radius:6px; padding:14px; background:color-mix(in srgb, var(--card) 92%, var(--viz-series-1) 8%); }
+    #ruoshui-customer-flow .node.source { background:color-mix(in srgb, var(--card) 90%, var(--viz-series-2) 10%); }
+    #ruoshui-customer-flow .node.process { background:color-mix(in srgb, var(--card) 90%, var(--viz-series-3) 10%); }
+    #ruoshui-customer-flow .node.queue { background:color-mix(in srgb, var(--card) 88%, var(--viz-series-4) 12%); }
+    #ruoshui-customer-flow .node.blocked { background:color-mix(in srgb, var(--card) 88%, var(--destructive) 12%); }
+    #ruoshui-customer-flow .node h3 { margin:0 0 8px; }
+    #ruoshui-customer-flow .value { font-size:28px; font-weight:500; margin-bottom:4px; }
+    #ruoshui-customer-flow .node ul { margin:8px 0 0; padding-left:18px; color:var(--muted-foreground); }
+    #ruoshui-customer-flow .arrow { display:flex; align-items:center; justify-content:center; color:var(--muted-foreground); font-size:24px; }
+    #ruoshui-customer-flow .sources { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-bottom:14px; }
+    #ruoshui-customer-flow .bar-title { display:flex; justify-content:space-between; gap:12px; margin:18px 0 7px; }
+    #ruoshui-customer-flow .stack { display:flex; width:100%; min-height:44px; border-radius:6px; overflow:hidden; border:1px solid var(--border); }
+    #ruoshui-customer-flow .segment { display:flex; align-items:center; justify-content:center; padding:8px; color:var(--foreground); background:color-mix(in srgb, var(--card) 82%, var(--viz-series-1) 18%); text-align:center; min-width:58px; }
+    #ruoshui-customer-flow .segment:nth-child(2) { background:color-mix(in srgb, var(--card) 82%, var(--viz-series-4) 18%); }
+    #ruoshui-customer-flow .segment:nth-child(3) { background:color-mix(in srgb, var(--card) 82%, var(--viz-series-5) 18%); }
+    #ruoshui-customer-flow .segment:nth-child(4) { background:color-mix(in srgb, var(--card) 82%, var(--destructive) 18%); }
+    #ruoshui-customer-flow .note { margin-top:14px; border-left:4px solid var(--destructive); padding:10px 12px; background:color-mix(in srgb, var(--background) 88%, var(--destructive) 12%); }
+    #ruoshui-customer-flow .legend { display:flex; flex-wrap:wrap; gap:14px; margin-top:12px; color:var(--muted-foreground); }
+    #ruoshui-customer-flow .dot { width:10px; height:10px; display:inline-block; border-radius:50%; margin-right:5px; background:var(--viz-series-2); }
+    #ruoshui-customer-flow .dot.process { background:var(--viz-series-3); }
+    #ruoshui-customer-flow .dot.queue { background:var(--viz-series-4); }
+    #ruoshui-customer-flow .dot.blocked { background:var(--destructive); }
+    @media (max-width: 760px) {
+      #ruoshui-customer-flow .sources { grid-template-columns:1fr; }
+      #ruoshui-customer-flow .lane { grid-template-columns:1fr; }
+      #ruoshui-customer-flow .arrow { transform:rotate(90deg); min-height:24px; }
+      #ruoshui-customer-flow .stack { flex-direction:column; }
+      #ruoshui-customer-flow .segment { width:100% !important; }
+    }
+  </style>
+
+  <div class="meta"><span>权威数据：unified_memory.db</span><span>快照：2026-07-21 09:35</span></div>
+
+  <div class="sources" aria-label="客户候选来源存量">
+    <section class="node source">
+      <h3>公开网页与行业信源</h3>
+      <div class="value">758</div>
+      <div>原始公开证据</div>
+      <ul><li>Exa 搜索 742</li><li>人工导入及其他 16</li></ul>
+    </section>
+    <section class="node source">
+      <h3>微信群成员</h3>
+      <div class="value">189</div>
+      <div>已入库成员快照</div>
+      <ul><li>硫磺产业群为主要业务来源</li><li>群、账号、成员身份分别留痕</li></ul>
+    </section>
+    <section class="node source">
+      <h3>人工与历史入口</h3>
+      <div class="value">受控补充</div>
+      <div>手机号、微信号、文章与旧候选</div>
+      <ul><li>仅补充线索，不直接成为客户</li><li>旧测试数据单独识别</li></ul>
+    </section>
+  </div>
+
+  <div class="lane" aria-label="候选进入待添加库的处理流程">
+    <section class="node process">
+      <h3>1. 结构化采集</h3>
+      <ul><li>保留来源 URL / 群 / 账号</li><li>提取姓名、公司、电话、微信 ID</li><li>原始证据不覆盖</li></ul>
+    </section>
+    <div class="arrow" aria-hidden="true">→</div>
+    <section class="node process">
+      <h3>2. 清洗与身份归并</h3>
+      <ul><li>电话标准化</li><li>微信 ID 优先去重</li><li>疑似同人只标记，不强行合并</li></ul>
+    </section>
+    <div class="arrow" aria-hidden="true">→</div>
+    <section class="node process">
+      <h3>3. 相关性评分</h3>
+      <div class="value">371</div>
+      <div>已评分 Lead 候选</div>
+      <ul><li>业务相关度、可联系性、来源质量</li><li>风险与时效共同影响优先级</li></ul>
+    </section>
+    <div class="arrow" aria-hidden="true">→</div>
+    <section class="node queue">
+      <h3>4. 待添加库</h3>
+      <div class="value">198</div>
+      <div>历史累计记录</div>
+      <ul><li>微信群成员来源 179</li><li>自动与历史来源 19</li></ul>
+    </section>
+  </div>
+
+  <div class="lane" aria-label="待添加库过滤与执行门禁">
+    <section class="node queue">
+      <h3>有效队列过滤</h3>
+      <div class="value">170</div>
+      <div>当前有效待添加</div>
+      <ul><li>161 条 queued</li><li>9 条 needs_provider_resolution</li></ul>
+    </section>
+    <div class="arrow" aria-hidden="true">→</div>
+    <section class="node process">
+      <h3>严格身份解析</h3>
+      <ul><li>目标 wxid 必须一致</li><li>搜索或群成员详情必须成功</li><li>不使用手机号或 wxid 冒充 v3</li></ul>
+    </section>
+    <div class="arrow" aria-hidden="true">→</div>
+    <section class="node blocked">
+      <h3>凭据门禁</h3>
+      <div class="value">0</div>
+      <div>严格就绪</div>
+      <ul><li>170 条均待完整 v3/v4</li><li>不满足则禁止调用 add_friend</li></ul>
+    </section>
+    <div class="arrow" aria-hidden="true">→</div>
+    <section class="node blocked">
+      <h3>真实添加执行</h3>
+      <div class="value">暂停</div>
+      <div>若水账号单次熔断</div>
+      <ul><li>曾出现客户端退出</li><li>恢复后仍只允许单人验证</li></ul>
+    </section>
+  </div>
+
+  <div class="bar-title"><span>当前有效待添加</span><strong>170</strong></div>
+  <div class="stack" aria-label="当前有效队列中161条排队，9条需要Provider解析">
+    <div class="segment" style="width:94.7%">排队等待 161</div>
+    <div class="segment" style="width:5.3%">解析 9</div>
+  </div>
+
+  <div class="bar-title"><span>历史累计结果</span><strong>28</strong></div>
+  <div class="stack" aria-label="历史累计结果包括取消19、试运行1、已提交5、已通过3">
+    <div class="segment" style="width:67.9%">取消 19</div>
+    <div class="segment" style="width:3.6%">试运行 1</div>
+    <div class="segment" style="width:17.9%">已提交 5</div>
+    <div class="segment" style="width:10.7%">已通过 3</div>
+  </div>
+
+  <div class="note"><strong>当前唯一执行卡点：</strong>手机号路线的 <code>get_contact</code> 未返回完整凭据；法律干货群抽查 5 名成员均有有效 v4，但 <code>encryptUserName(v3)</code> 为空。候选采集和排队可以继续，真实添加保持暂停。</div>
+
+  <div class="legend" aria-label="图例">
+    <span><i class="dot"></i>来源</span>
+    <span><i class="dot process"></i>处理</span>
+    <span><i class="dot queue"></i>队列</span>
+    <span><i class="dot blocked"></i>阻塞或暂停</span>
+  </div>
+</div>

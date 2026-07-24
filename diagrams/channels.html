@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>若水 · 客户信息渠道架构</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0f2f5; color: #333; font-size:14px; display:flex; justify-content:center; }
+  .page { width: 480px; padding: 12px 8px; }
+
+  .card { background:#fff; border-radius:12px; padding:14px; margin-bottom:10px; box-shadow:0 1px 3px rgba(0,0,0,0.05); }
+  .card h2 { font-size:16px; margin-bottom:10px; padding-bottom:6px; border-bottom:2px solid #eee; display:flex; align-items:center; gap:6px; }
+
+  .channel-group { margin-bottom:10px; }
+  .channel-group-title { font-size:12px; font-weight:700; color:#888; margin-bottom:6px; padding:4px 8px; border-radius:4px; display:flex; align-items:center; gap:6px; }
+  .group-active { background:#d4edda; color:#155724; }
+  .group-unstable { background:#fff3cd; color:#856404; }
+  .group-pending { background:#e2e3e5; color:#383d41; }
+
+  .channel { display:flex; align-items:flex-start; padding:8px 10px; margin:3px 0; border-radius:8px; border-left:3px solid transparent; }
+  .channel-active { background:#f6fdf8; border-left-color:#28a745; }
+  .channel-unstable { background:#fffdf6; border-left-color:#ffc107; }
+  .channel-pending { background:#f9f9fa; border-left-color:#adb5bd; }
+  .channel-removed { background:#fef2f2; border-left-color:#ef4444; opacity:0.7; }
+
+  .ch-icon { width:28px; height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; margin-right:8px; }
+  .ch-info { flex:1; min-width:0; }
+  .ch-name { font-weight:700; font-size:13px; margin-bottom:2px; }
+  .ch-desc { font-size:11px; color:#666; line-height:1.5; }
+  .ch-tags { display:flex; gap:4px; flex-wrap:wrap; margin-top:4px; }
+  .ch-tag { font-size:10px; padding:1px 6px; border-radius:10px; background:#e8e8e8; color:#555; white-space:nowrap; }
+
+  .flow-section { margin:12px 0; position:relative; }
+  .flow-arrow { text-align:center; color:#999; font-size:18px; padding:2px 0; }
+  .flow-box { border:2px dashed #ccc; border-radius:10px; padding:12px; text-align:center; }
+  .flow-box-title { font-size:13px; font-weight:700; color:#555; margin-bottom:6px; }
+  .flow-box-desc { font-size:11px; color:#888; }
+
+  .pool-box { border:2px solid #2471a3; background:#eaf2f8; border-radius:10px; padding:12px; text-align:center; margin:6px 0; }
+  .pool-title { font-size:14px; font-weight:700; color:#1a5276; }
+  .pool-desc { font-size:11px; color:#555; margin-top:3px; }
+
+  .verify-box { border:2px solid #b7950b; background:#fef9e7; border-radius:10px; padding:12px; text-align:center; margin:6px 0; }
+  .verify-title { font-size:14px; font-weight:700; color:#7d6608; }
+
+  .output-box { border:2px solid #1e8449; background:#d5f5e3; border-radius:10px; padding:12px; text-align:center; margin:6px 0; }
+  .output-title { font-size:14px; font-weight:700; color:#145a32; }
+
+  .stats { display:flex; gap:8px; margin:8px 0; }
+  .stat { flex:1; background:#f8f9fa; border-radius:8px; padding:8px; text-align:center; }
+  .stat-num { font-size:20px; font-weight:800; color:#1a5276; }
+  .stat-label { font-size:10px; color:#888; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- HEADER -->
+<div class="card" style="background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;">
+  <div style="font-size:11px;opacity:0.7;">若水 · 客户信息采集系统</div>
+  <div style="font-size:18px;font-weight:800;margin:4px 0;">信息渠道 · 数据流架构</div>
+  <div style="font-size:11px;opacity:0.75;">多渠道采集 → 证据池 → 交叉验证 → 客户档案</div>
+</div>
+
+<!-- ===== 渠道概览统计 ===== -->
+<div class="card">
+  <h2>📊 渠道概览</h2>
+  <div class="stats">
+    <div class="stat"><div class="stat-num">6</div><div class="stat-label">正在使用</div></div>
+    <div class="stat"><div class="stat-num">3</div><div class="stat-label">已接入不稳</div></div>
+    <div class="stat"><div class="stat-num">5+</div><div class="stat-label">尚未接入</div></div>
+    <div class="stat"><div class="stat-num">1</div><div class="stat-label">已移除</div></div>
+  </div>
+</div>
+
+<!-- ===== 一、正在使用 ===== -->
+<div class="card">
+  <h2>🟢 正在使用</h2>
+
+  <div class="channel-group">
+    <div class="channel-group-title group-active">🔍 公网搜索</div>
+    <div class="channel channel-active">
+      <div class="ch-icon" style="background:#eaf2f8;">🔍</div>
+      <div class="ch-info">
+        <div class="ch-name">Exa 公网搜索</div>
+        <div class="ch-desc">持续搜索国内外供应商、贸易商、炼厂、买方、港口及联系方式。主要搜索入口。</div>
+        <div class="ch-tags"><span class="ch-tag">🔥 主渠道</span><span class="ch-tag">10 Leads/轮</span><span class="ch-tag">08:32 运行</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="channel-group">
+    <div class="channel-group-title group-active">💬 微信本地数据</div>
+    <div class="channel channel-active">
+      <div class="ch-icon" style="background:#e8f8f5;">💬</div>
+      <div class="ch-info">
+        <div class="ch-name">本地微信历史记录</div>
+        <div class="ch-desc">若水私聊 + 宋生私聊 + 群聊 → 提取联系人、公司、业务角色、产品、电话、wxid</div>
+        <div class="ch-tags"><span class="ch-tag">历史数据</span><span class="ch-tag">wxid</span><span class="ch-tag">电话</span></div>
+      </div>
+    </div>
+    <div class="channel channel-active">
+      <div class="ch-icon" style="background:#f5eef8;">👥</div>
+      <div class="ch-info">
+        <div class="ch-name">微信通讯录</div>
+        <div class="ch-desc">识别当前好友和历史关系。⚠️ 好友身份≠客户，不等于自动回复授权。</div>
+        <div class="ch-tags"><span class="ch-tag">关系映射</span><span class="ch-tag">需审核</span></div>
+      </div>
+    </div>
+    <div class="channel channel-active">
+      <div class="ch-icon" style="background:#fef9e7;">📢</div>
+      <div class="ch-info">
+        <div class="ch-name">指定业务群</div>
+        <div class="ch-desc">从群消息识别发言成员及业务证据。⚠️ 完整群成员Hook未稳定，不能保证覆盖未发言成员。</div>
+        <div class="ch-tags"><span class="ch-tag">部分覆盖</span><span class="ch-tag">仅发言者</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="channel-group">
+    <div class="channel-group-title group-active">📥 人工导入</div>
+    <div class="channel channel-active">
+      <div class="ch-icon" style="background:#eaf2f8;">📋</div>
+      <div class="ch-info">
+        <div class="ch-name">人工导入</div>
+        <div class="ch-desc">姓名、手机号、微信号、公司名、CSV/JSON、业务资料。人工提供的数据直接入库。</div>
+        <div class="ch-tags"><span class="ch-tag">手动</span><span class="ch-tag">CSV</span><span class="ch-tag">JSON</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="channel-group">
+    <div class="channel-group-title group-active">📰 内容库</div>
+    <div class="channel channel-active">
+      <div class="ch-icon" style="background:#f5eef8;">📚</div>
+      <div class="ch-info">
+        <div class="ch-name">公众号及本地文章库</div>
+        <div class="ch-desc">已导入公众号历史文章、行业资讯、公众号候选清单。用于发现企业、项目、供需和行业证据。</div>
+        <div class="ch-tags"><span class="ch-tag">行业资讯</span><span class="ch-tag">企业发现</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 二、已接入但不稳定 ===== -->
+<div class="card">
+  <h2>🟡 已接入 · 稳定性一般</h2>
+
+  <div class="channel channel-unstable">
+    <div class="ch-icon" style="background:#fff3cd;">🌐</div>
+    <div class="ch-info">
+      <div class="ch-name">Jina Reader</div>
+      <div class="ch-desc">读取网页正文、补全搜索结果。部分网站：403、登录墙、空正文。</div>
+      <div class="ch-tags"><span class="ch-tag">403多</span><span class="ch-tag">登录墙</span></div>
+    </div>
+  </div>
+  <div class="channel channel-unstable">
+    <div class="ch-icon" style="background:#fff3cd;">📡</div>
+    <div class="ch-info">
+      <div class="ch-name">RSS Feed</div>
+      <div class="ch-desc">行业资讯和搜索订阅。部分源请求失败，主要作为补充。</div>
+      <div class="ch-tags"><span class="ch-tag">部分失效</span><span class="ch-tag">补充</span></div>
+    </div>
+  </div>
+  <div class="channel channel-unstable">
+    <div class="ch-icon" style="background:#fff3cd;">🌍</div>
+    <div class="ch-info">
+      <div class="ch-name">通用Public Search / Bing HTML</div>
+      <div class="ch-desc">备用入口。因零结果、SSL和页面变化问题不作为主渠道。</div>
+      <div class="ch-tags"><span class="ch-tag">备用</span><span class="ch-tag">不稳定</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 三、尚未接入 ===== -->
+<div class="card">
+  <h2>⚪ 尚未正式接入</h2>
+
+  <div class="channel-group">
+    <div class="channel-group-title group-pending">📱 社交平台</div>
+    <div class="channel channel-pending">
+      <div class="ch-icon" style="background:#f0f0f0;">📕</div>
+      <div class="ch-info">
+        <div class="ch-name">小红书 / 抖音 / 微博 / B站 / 知乎</div>
+        <div class="ch-desc">社交平台内容采集，尚未接入。</div>
+        <div class="ch-tags"><span class="ch-tag">待开发</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="channel-group">
+    <div class="channel-group-title group-pending">🏢 工商数据</div>
+    <div class="channel channel-pending">
+      <div class="ch-icon" style="background:#f0f0f0;">🏛</div>
+      <div class="ch-info">
+        <div class="ch-name">企查查 / 天眼查</div>
+        <div class="ch-desc">工商企业信息、股东、关联公司查询。尚未接入。</div>
+        <div class="ch-tags"><span class="ch-tag">高价值</span><span class="ch-tag">待接入</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="channel-group">
+    <div class="channel-group-title group-pending">🔗 行业 & 搜索</div>
+    <div class="channel channel-pending">
+      <div class="ch-icon" style="background:#f0f0f0;">🔎</div>
+      <div class="ch-info">
+        <div class="ch-name">搜狗微信 / LinkedIn / 行业黄页 / 海关数据库 / 招投标数据库</div>
+        <div class="ch-desc">公众号搜索、职业社交、行业企业名录、海关进出口数据、招投标信息——均未接入。</div>
+        <div class="ch-tags"><span class="ch-tag">高价值</span><span class="ch-tag">海关数据</span><span class="ch-tag">招投标</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 已移除 ===== -->
+<div class="card">
+  <h2>❌ 已移除</h2>
+  <div class="channel channel-removed">
+    <div class="ch-icon" style="background:#fde8e8;">🕷</div>
+    <div class="ch-info">
+      <div class="ch-name">MediaCrawler</div>
+      <div class="ch-desc">因许可证禁止商业用途，已清理，不进入若水生产链路。</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 数据流 ===== -->
+<div class="card">
+  <h2>🔄 数据流向</h2>
+
+  <div style="text-align:center;margin:8px 0;">
+    <div style="display:flex;justify-content:center;gap:4px;flex-wrap:wrap;margin-bottom:8px;">
+      <div style="background:#d4edda;padding:4px 10px;border-radius:12px;font-size:11px;">Exa搜索</div>
+      <div style="background:#d4edda;padding:4px 10px;border-radius:12px;font-size:11px;">微信历史</div>
+      <div style="background:#d4edda;padding:4px 10px;border-radius:12px;font-size:11px;">通讯录</div>
+      <div style="background:#d4edda;padding:4px 10px;border-radius:12px;font-size:11px;">业务群</div>
+      <div style="background:#d4edda;padding:4px 10px;border-radius:12px;font-size:11px;">人工导入</div>
+      <div style="background:#d4edda;padding:4px 10px;border-radius:12px;font-size:11px;">文章库</div>
+    </div>
+    <div style="display:flex;justify-content:center;gap:4px;flex-wrap:wrap;margin-bottom:8px;">
+      <div style="background:#fff3cd;padding:4px 10px;border-radius:12px;font-size:11px;">Jina</div>
+      <div style="background:#fff3cd;padding:4px 10px;border-radius:12px;font-size:11px;">RSS</div>
+      <div style="background:#fff3cd;padding:4px 10px;border-radius:12px;font-size:11px;">Bing备用</div>
+    </div>
+    <div style="display:flex;justify-content:center;gap:4px;flex-wrap:wrap;">
+      <div style="background:#e2e3e5;padding:4px 10px;border-radius:12px;font-size:11px;">社交平台</div>
+      <div style="background:#e2e3e5;padding:4px 10px;border-radius:12px;font-size:11px;">工商数据</div>
+      <div style="background:#e2e3e5;padding:4px 10px;border-radius:12px;font-size:11px;">海关/招标</div>
+    </div>
+  </div>
+
+  <div class="flow-arrow">⬇️ ⬇️ ⬇️</div>
+
+  <div class="pool-box">
+    <div class="pool-title">📦 Lead / 证据池</div>
+    <div class="pool-desc">所有渠道的原始数据统一汇聚于此</div>
+  </div>
+
+  <div class="flow-arrow">⬇️</div>
+
+  <div class="verify-box">
+    <div class="verify-title">🔎 交叉验证 & 人工审核</div>
+    <div style="font-size:10px;color:#666;margin-top:2px;">来源真实性 · 身份确认 · 联系方式验证 · 交叉比对</div>
+  </div>
+
+  <div class="flow-arrow">⬇️</div>
+
+  <div class="output-box">
+    <div class="output-title">✅ 正式客户档案</div>
+    <div style="font-size:10px;color:#2d6a4f;margin-top:2px;">通过审核后进入 · 不可直接触发加好友或私聊</div>
+  </div>
+
+  <div style="text-align:center;margin-top:8px;font-size:10px;color:#999;">
+    ⚠️ 所有数据经过验证后才进入正式档案<br>搜索结果 ≠ 自动加好友/私聊授权
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div style="text-align:center;padding:16px;color:#aaa;font-size:11px;">
+  若水 · 客户信息采集架构 v1.0 · 2026.07.16
+</div>
+
+<!-- ============================================================ -->
+<!-- ===== 四、建议新增渠道（基于业务认知扩展） ===== -->
+<!-- ============================================================ -->
+<div class="card" style="border:2px solid #1a5276;">
+  <h2>💡 建议新增渠道｜基于业务认知扩展</h2>
+  <div style="font-size:11px;color:#888;margin-bottom:8px;">以下渠道尚未接入，按价值优先级排列</div>
+
+  <!-- 海关数据 -->
+  <div class="channel-group">
+    <div class="channel-group-title" style="background:#eaf2f8;color:#1a5276;">🔴 P0 · 海关 & 进出口数据</div>
+    <div class="channel" style="background:#eaf2f8;border-left-color:#1a5276;">
+      <div class="ch-icon" style="background:#1a5276;color:#fff;">📊</div>
+      <div class="ch-info">
+        <div class="ch-name">中国海关进出口数据</div>
+        <div class="ch-desc">硫磺HS2503进口企业名单、进口量、来源国、口岸。直接找到真实买家——谁在进口硫磺、从哪进、多少量。</div>
+        <div class="ch-tags"><span class="ch-tag" style="background:#1a5276;color:#fff;">🔥 核心</span><span class="ch-tag">真实买家</span><span class="ch-tag">HS2503</span></div>
+      </div>
+    </div>
+    <div class="channel" style="background:#eaf2f8;border-left-color:#1a5276;">
+      <div class="ch-icon" style="background:#1a5276;color:#fff;">🌍</div>
+      <div class="ch-info">
+        <div class="ch-name">Panjiva / ImportGenius / 国别贸易报告</div>
+        <div class="ch-desc">全球硫磺贸易流向数据。查到谁在买、谁在卖、价格区间、贸易频次。</div>
+        <div class="ch-tags"><span class="ch-tag" style="background:#1a5276;color:#fff;">🔥 核心</span><span class="ch-tag">全球流向</span></div>
+      </div>
+    </div>
+    <div class="channel" style="background:#eaf2f8;border-left-color:#1a5276;">
+      <div class="ch-icon" style="background:#1a5276;color:#fff;">🏛</div>
+      <div class="ch-info">
+        <div class="ch-name">各省应急管理厅 · 危化品经营许可公示</div>
+        <div class="ch-desc">有硫磺经营资质的企业 = 潜在买家和资方。公开可查，含企业名称、地址、许可范围。</div>
+        <div class="ch-tags"><span class="ch-tag" style="background:#1a5276;color:#fff;">公开数据</span><span class="ch-tag">精准客户</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 行业平台 -->
+  <div class="channel-group">
+    <div class="channel-group-title" style="background:#f5eef8;color:#6c3483;">🟡 P1 · 行业协会 & B2B平台</div>
+    <div class="channel" style="background:#fcf8fd;border-left-color:#6c3483;">
+      <div class="ch-icon" style="background:#6c3483;color:#fff;">🏭</div>
+      <div class="ch-info">
+        <div class="ch-name">中国磷复肥工业协会 / 中国硫酸工业协会</div>
+        <div class="ch-desc">会员企业名单 = 硫磺终端用户（磷肥厂、硫酸厂）。有联系方式、产能数据。</div>
+        <div class="ch-tags"><span class="ch-tag">会员名单</span><span class="ch-tag">终端客户</span></div>
+      </div>
+    </div>
+    <div class="channel" style="background:#fcf8fd;border-left-color:#6c3483;">
+      <div class="ch-icon" style="background:#6c3483;color:#fff;">🛒</div>
+      <div class="ch-info">
+        <div class="ch-name">阿里巴巴1688 / 慧聪网化工频道 / 中国制造网</div>
+        <div class="ch-desc">国内B2B平台上的硫磺采购商和供应商。可直接获取公司名、电话、采购需求。</div>
+        <div class="ch-tags"><span class="ch-tag">B2B</span><span class="ch-tag">采购需求</span></div>
+      </div>
+    </div>
+    <div class="channel" style="background:#fcf8fd;border-left-color:#6c3483;">
+      <div class="ch-icon" style="background:#6c3483;color:#fff;">🌐</div>
+      <div class="ch-info">
+        <div class="ch-name">Alibaba.com / TradeKey / EC21（国际B2B）</div>
+        <div class="ch-desc">国际硫磺供应商和贸易商。找到中亚、中东、俄罗斯的硫磺卖家。</div>
+        <div class="ch-tags"><span class="ch-tag">国际卖家</span><span class="ch-tag">供应商</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 专业数据 -->
+  <div class="channel-group">
+    <div class="channel-group-title" style="background:#e8f8f5;color:#0e6655;">🟡 P1 · 专业行业数据库</div>
+    <div class="channel" style="background:#f0faf7;border-left-color:#0e6655;">
+      <div class="ch-icon" style="background:#0e6655;color:#fff;">📈</div>
+      <div class="ch-info">
+        <div class="ch-name">卓创资讯 / 隆众资讯</div>
+        <div class="ch-desc">大宗商品数据平台。硫磺价格行情、供需报告、企业产能、开工率。精准了解市场。</div>
+        <div class="ch-tags"><span class="ch-tag">价格行情</span><span class="ch-tag">供需数据</span></div>
+      </div>
+    </div>
+    <div class="channel" style="background:#f0faf7;border-left-color:#0e6655;">
+      <div class="ch-icon" style="background:#0e6655;color:#fff;">📋</div>
+      <div class="ch-info">
+        <div class="ch-name">Argus / ICIS / CRU 硫磺市场报告</div>
+        <div class="ch-desc">国际硫磺定价、贸易流、全球供需平衡。了解上游谁在卖、卖什么价。</div>
+        <div class="ch-tags"><span class="ch-tag">全球价格</span><span class="ch-tag">贸易情报</span></div>
+      </div>
+    </div>
+    <div class="channel" style="background:#f0faf7;border-left-color:#0e6655;">
+      <div class="ch-icon" style="background:#0e6655;color:#fff;">💼</div>
+      <div class="ch-info">
+        <div class="ch-name">Link托 / 找钢网 / 大宗商品贸易平台</div>
+        <div class="ch-desc">大宗商品贸易圈子。找到其他硫磺贸易商、托盘方。了解行业人脉。</div>
+        <div class="ch-tags"><span class="ch-tag">贸易圈</span><span class="ch-tag">人脉</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 社交 & 圈子 -->
+  <div class="channel-group">
+    <div class="channel-group-title" style="background:#fff3cd;color:#856404;">🟡 P1 · 国际社交 & 圈子</div>
+    <div class="channel" style="background:#fffdf6;border-left-color:#ffc107;">
+      <div class="ch-icon" style="background:#ffc107;color:#333;">💼</div>
+      <div class="ch-info">
+        <div class="ch-name">LinkedIn</div>
+        <div class="ch-desc">国际硫磺贸易商、矿企高管、大宗商品Trader活跃于此。可搜索公司、职位、联系方式。</div>
+        <div class="ch-tags"><span class="ch-tag">🔥 国际</span><span class="ch-tag">Trader</span><span class="ch-tag">决策人</span></div>
+      </div>
+    </div>
+    <div class="channel" style="background:#fffdf6;border-left-color:#ffc107;">
+      <div class="ch-icon" style="background:#ffc107;color:#333;">💬</div>
+      <div class="ch-info">
+        <div class="ch-name">化工行业QQ群 / 微信群 / 海川化工论坛</div>
+        <div class="ch-desc">国内化工贸易从业者的聚集地。群内直接发布采购和供应信息。</div>
+        <div class="ch-tags"><span class="ch-tag">圈子</span><span class="ch-tag">供需信息</span></div>
+      </div>
+    </div>
+    <div class="channel" style="background:#fffdf6;border-left-color:#ffc107;">
+      <div class="ch-icon" style="background:#ffc107;color:#333;">🎤</div>
+      <div class="ch-info">
+        <div class="ch-name">行业展会参展商名录</div>
+        <div class="ch-desc">CAC农化展、中国国际化工展、CRU Sulphur Conference——参展企业=潜在客户。</div>
+        <div class="ch-tags"><span class="ch-tag">精准</span><span class="ch-tag">面对面</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 政府 & 招投标 -->
+  <div class="channel-group">
+    <div class="channel-group-title" style="background:#e2e3e5;color:#383d41;">⚪ P2 · 政府公开 & 招投标</div>
+    <div class="channel" style="background:#f9f9fa;border-left-color:#adb5bd;">
+      <div class="ch-icon" style="background:#adb5bd;color:#fff;">📢</div>
+      <div class="ch-info">
+        <div class="ch-name">中国招标投标公共服务平台 / 各省采购网</div>
+        <div class="ch-desc">硫磺/化肥/化工原料的公开招标信息。直接看到谁在采购、采购量、预算。</div>
+        <div class="ch-tags"><span class="ch-tag">招标</span><span class="ch-tag">采购需求</span></div>
+      </div>
+    </div>
+    <div class="channel" style="background:#f9f9fa;border-left-color:#adb5bd;">
+      <div class="ch-icon" style="background:#adb5bd;color:#fff;">📄</div>
+      <div class="ch-info">
+        <div class="ch-name">上市公司年报/行业研报</div>
+        <div class="ch-desc">磷肥/化工上市公司年报披露的原材料采购量、供应商。Wind/同花顺可查。</div>
+        <div class="ch-tags"><span class="ch-tag">公开信息</span><span class="ch-tag">年报</span></div>
+      </div>
+    </div>
+    <div class="channel" style="background:#f9f9fa;border-left-color:#adb5bd;">
+      <div class="ch-icon" style="background:#adb5bd;color:#fff;">🏗</div>
+      <div class="ch-info">
+        <div class="ch-name">各省化工园区 & 经济开发区企业名录</div>
+        <div class="ch-desc">园区内化工企业 = 潜在下游客户。各地园区管委会官网通常有入驻企业列表。</div>
+        <div class="ch-tags"><span class="ch-tag">企业名录</span><span class="ch-tag">园区</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== 总结：客户来源全景 ===== -->
+<div class="card" style="border:2px solid #1e8449;">
+  <h2>🎯 硫磺业务 · 客户来源全景</h2>
+
+  <div style="background:#f0faf7;border-radius:8px;padding:10px;margin:6px 0;">
+    <div style="font-weight:700;font-size:13px;color:#0e6655;">🏭 下游买家 — 磷肥厂/硫酸厂/化工厂</div>
+    <div style="font-size:11px;color:#555;margin-top:3px;">
+      海关HS2503进口数据 → 协会会员名单 → 1688/慧聪网采购商 → 招标平台 → 化工园区企业名录 → 上市公司年报 → 微信群/QQ群
+    </div>
+  </div>
+
+  <div style="background:#eaf2f8;border-radius:8px;padding:10px;margin:6px 0;">
+    <div style="font-weight:700;font-size:13px;color:#1a5276;">🌍 上游供应商 — 中亚/中东/俄罗斯硫磺卖家</div>
+    <div style="font-size:11px;color:#555;margin-top:3px;">
+      LinkedIn → 国际B2B平台(Alibaba/TradeKey) → Panjiva/ImportGenius → Argus/ICIS报告 → CRU会议参展商 → Exa搜索
+    </div>
+  </div>
+
+  <div style="background:#f5eef8;border-radius:8px;padding:10px;margin:6px 0;">
+    <div style="font-weight:700;font-size:13px;color:#6c3483;">🏦 资方/托盘方 — 供应链国企/贸易公司</div>
+    <div style="font-size:11px;color:#555;margin-top:3px;">
+      企查查(大宗供应链企业) → 危化品经营许可公示 → 行业圈子人脉 → Link托/找钢网 → 招标平台上的中标方
+    </div>
+  </div>
+
+  <div style="background:#fff3cd;border-radius:8px;padding:10px;margin:6px 0;">
+    <div style="font-weight:700;font-size:13px;color:#856404;">🤝 贸易商/中间人 — 行业人脉</div>
+    <div style="font-size:11px;color:#555;margin-top:3px;">
+      化工QQ群/微信群 → LinkedIn Trader → 展会 → 行业论坛 → 微信通讯录现有关系 → 公众号文章评论区
+    </div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

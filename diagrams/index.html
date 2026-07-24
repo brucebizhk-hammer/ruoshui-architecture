@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>若水项目图集</title>
+  <style>
+    :root { color-scheme: light; --ink:#17202a; --muted:#667085; --line:#dfe4ea; --accent:#087f5b; --bg:#f7f8fa; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font-family:"Microsoft YaHei",system-ui,sans-serif; }
+    header { background:#fff; border-bottom:1px solid var(--line); padding:24px 18px 20px; }
+    header div, main { width:min(980px,100%); margin:auto; }
+    h1 { margin:0 0 8px; font-size:26px; letter-spacing:0; }
+    p { margin:0; color:var(--muted); line-height:1.7; }
+    main { padding:18px; }
+    .primary { display:block; padding:18px; color:#fff; background:var(--accent); text-decoration:none; border-radius:6px; margin-bottom:16px; }
+    .primary strong { display:block; font-size:19px; margin-bottom:5px; }
+    .primary span { color:#d8f3e8; }
+    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+    .item { display:block; min-height:112px; padding:16px; background:#fff; border:1px solid var(--line); border-radius:6px; color:inherit; text-decoration:none; }
+    .item strong { display:block; margin-bottom:8px; font-size:17px; }
+    .item span { color:var(--muted); line-height:1.55; }
+    footer { padding:8px 18px 28px; text-align:center; color:var(--muted); font-size:13px; }
+    @media (max-width:640px) { .grid { grid-template-columns:1fr; } h1 { font-size:23px; } }
+  </style>
+</head>
+<body>
+  <header><div><h1>若水项目图集</h1><p>手机查看入口。仅发布脱敏后的架构、流程和进度图，客户明细与运行日志不在公网展示。</p></div></header>
+  <main>
+    <a class="primary" href="../index.html"><strong>实时项目总图</strong><span>当前状态、增长流水线、开发节点和总体架构</span></a>
+    <div class="grid">
+      <a class="item" href="customer-acquisition.html"><strong>客户获取实施全景图</strong><span>信源、工具、数据结构、实际状态、问题与完整流程</span></a>
+      <a class="item" href="customer-source-flow.html"><strong>客户来源到待添加</strong><span>候选采集、身份清洗、评分、入库和待添加队列</span></a>
+      <a class="item" href="implementation.html"><strong>实施架构图</strong><span>业务主线、系统模块与落地关系</span></a>
+      <a class="item" href="channels.html"><strong>渠道结构图</strong><span>各微信身份、开发通道与业务通道的边界</span></a>
+      <a class="item" href="progress-plan.html"><strong>当前进度与任务图</strong><span>阶段状态、近期任务和后续推进顺序</span></a>
+      <a class="item" href="customer-data-architecture.html"><strong>客户信息收集架构图</strong><span>客户档案、证据、来源和信息补全结构</span></a>
+      <a class="item" href="stage-closure.html"><strong>阶段收口总览</strong><span>已完成能力、现存问题和阶段结论</span></a>
+    </div>
+  </main>
+  <footer>更新时间：2026-07-24 · 公开脱敏版</footer>
+</body>
+</html>
